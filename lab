@@ -1,0 +1,97 @@
+#!/usr/bin/python   
+
+import os
+import subprocess
+import sys
+import typer
+from pathlib import Path
+
+app = typer.Typer()
+
+PROJECT_ROOT    = Path(__file__).parent.resolve()
+LABS_DIR        = PROJECT_ROOT / "labs"
+
+
+def get_labs():
+    if not LABS_DIR.exists():
+        return []
+    return sorted(
+        lab.name
+        for lab in LABS_DIR.iterdir()
+        if lab.is_dir()
+    )
+
+
+
+def complete_lab(ctx, args, incomplete: str):
+    return [
+        lab
+        for lab in get_labs()
+        if lab.startswith(incomplete)
+    ]
+
+
+def lab_arg():
+    return typer.Argument(
+        ...,
+        help="Lab name",
+        autocompletion=complete_lab
+    )
+
+
+def run_lab(lab: str, action: str):
+    
+    lab_dir             = LABS_DIR /lab
+    env                 = os.environ.copy()
+    env["PYTHONPATH"]   = str(PROJECT_ROOT)
+
+    if not lab_dir.is_dir():
+        typer.echo(f"Lab not found: {lab}")
+        raise typer.Exit(code=1)
+
+    script = lab_dir / f"{action}.py"
+
+    if not script.is_file():
+        typer.echo(
+            f"{script.name} not found in {lab}"
+        )
+        raise typer.Exit(code=1)
+
+    result  = subprocess.run(
+        [sys.executable,str(script)]
+        ,env=env
+        ,cwd=PROJECT_ROOT
+    )
+    
+    raise typer.Exit(code=result.returncode)
+
+
+@app.command()
+def start(lab: str = lab_arg()):
+    run_lab(lab,"start") 
+
+
+@app.command()
+def finish(lab: str = lab_arg()):
+    run_lab(lab,"finish")
+
+
+@app.command()
+def list():
+    labs = get_labs()
+
+    if not labs:
+        typer.echo("No labs found.")
+        return
+
+    typer.echo("Available labs:")
+    typer.echo()
+
+    for lab in labs:
+        typer.echo(f"  {lab}")
+
+
+
+if __name__ == "__main__":
+    app()
+
