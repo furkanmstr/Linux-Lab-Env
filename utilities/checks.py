@@ -22,7 +22,7 @@ def check_user(username: str) -> bool:
     except KeyError:
         result  = False
 
-    return check_result(f"User '{username}' exists", retult)
+    return check_result(f"User '{username}' exists", result)
 
 
 def check_group(groupname: str) -> bool: 

@@ -9,7 +9,7 @@ A hands-on lab environment for practicing Linux commands. Complete tasks and get
 ```bash
 git clone <repo-url>
 cd Linux-Lab-Env
-pip install typer
+pip install -r requirements.txt
 ```
 
 ## Usage
